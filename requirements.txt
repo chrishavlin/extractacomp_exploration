@@ -2,3 +2,6 @@ rosettasciio[all]
 numpy
 matplotlib
 jupyterlab
+pandas
+hyperspy
+exspy
