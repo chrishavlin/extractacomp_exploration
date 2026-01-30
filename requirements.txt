@@ -1,0 +1,4 @@
+rosettasciio[all]
+numpy
+matplotlib
+jupyterlab
