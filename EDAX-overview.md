@@ -52,7 +52,7 @@ import hyperspy.api as hs
 ds = hs.load(filename.spd, ipr_fname=filename.ipr)
 ```
 
-where `ds` is now a `exspy.signals.eds_sem.EDSSEMSpectrum` type. Once in hypserpy, can use `ds.sum()` to create a 1d spectrum signal that can be plotted or saved. Also, `ds.as_lazy` will create a `dask` array that wraps the signal, nominally splitting the data across chunks (but with caveats noted in the next section).
+where `ds` is now a `exspy.signals.eds_sem.EDSSEMSpectrum` type. Once in hypserpy, can use `ds.sum()` to create a 1d spectrum signal that can be plotted or saved. Also, `ds.as_lazy` will create a `dask` array that wraps the signal, nominally splitting the data across chunks (but with caveats noted in the section on performance testing).
 
 ## Operations
 
