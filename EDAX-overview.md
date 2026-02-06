@@ -32,7 +32,7 @@ The `.xml` seems to include a small amount of microscope-related metadata:
 The actual file specifications of the binary files are available at https://hyperspy.org/rosettasciio/file_specification/index.html#edax-file-specification  for the `.spd`, `.spc` and `.ipr` files.
 
 
-## Loading EDAX files Python
+## Loading EDAX files with Python
 
 `Hyperspy`'s backend IO library, `RosettaSciIO` supports EDAX files and will load the binary spectrum image as a `np.memmap` array . See [here](https://hyperspy.org/rosettasciio/supported_formats/edax.html#edax-team-genesis-spc-spd) for a description, it's also useful to check how the `memmap` array is created: [rsciio/edax/_api.py#L801-L824](https://github.com/hyperspy/rosettasciio/blob/edd6bd39c79cb373279d4d73d85151b0fc8f0ad4/rsciio/edax/_api.py#L801-L824).
 
