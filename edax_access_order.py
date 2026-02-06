@@ -14,7 +14,7 @@ def load_edax_spd(basename: str) -> dict[str, Any]:
     fispd = os.path.join(subdir, f"{basename}.spd")
     fiipr = os.path.join(subdir, f"{basename}.ipr")
 
-    ds = edax.file_reader(fispd, ipr_fname=fiipr)[0]
+    ds = edax.file_reader(fispd, ipr_fname=fiipr, mode='r')[0]
     return ds
 
 
@@ -62,7 +62,7 @@ def run_test(filename_base: str, axis: int, reload_memmap: bool = False):
     # sz_1 = ds['axes'][1]['size']
     # sz_2 = ds['axes'][2]['size']
 
-    chunksize = 1
+    chunksize = 64
 
     n_chunks = int(np.ceil(ds['axes'][axis]['size'] / chunksize))
     maxindex = ds['axes'][axis]['size']
@@ -82,18 +82,19 @@ def run_test(filename_base: str, axis: int, reload_memmap: bool = False):
 
         match axis:
             case 0:
-                subsample = np.array(ds['data'][channel_start:channel_end,:,:]).copy()
+                subsample = np.array(ds['data'][channel_start:channel_end,:,:])
             case 1:
-                subsample = np.array(ds['data'][:,channel_start:channel_end,:]).copy()
+                subsample = np.array(ds['data'][:,channel_start:channel_end,:])
             case 2:
                 # worst case!
-                subsample = np.array(ds['data'][:,:,channel_start:channel_end]).copy()
+                subsample = np.array(ds['data'][:,:,channel_start:channel_end])
 
         if reload_memmap:
             del ds
 
-        # _ = np.sum(subsample)
+        _ = np.sum(subsample)
         assert len(subsample.shape) == 3
+        del subsample
 
 
 

@@ -14,7 +14,7 @@ def load_edax_spd(basename: str) -> dict[str, Any]:
     fispd = os.path.join(subdir, f"{basename}.spd")
     fiipr = os.path.join(subdir, f"{basename}.ipr")
 
-    ds = edax.file_reader(fispd, ipr_fname=fiipr)[0]
+    ds = edax.file_reader(fispd, ipr_fname=fiipr, mode='r')[0]
     return ds
 
 
@@ -126,6 +126,12 @@ if __name__ == "__main__":
         print(f"single map access at (500,500,:) of size {value.shape}")
     elif valid_args.testcase == 'pixeliter':
         run_pixel_itertest(valid_args.filename)
+    elif valid_args.testcase == 'sumall':
+        ds = load_edax_spd(valid_args.filename)
+        print("summing the entire array at once (hope you have enough memory!)")
+        sumval = np.sum(ds['data'][:,:,:])
+        print(f"done with sum: {sumval} ")
+
 
 
 
