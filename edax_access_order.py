@@ -37,6 +37,7 @@ def get_n_chunks(filename_base: str, chunksize: int):
     maxindex = ds['axes'][2]['size']
     return maxindex, n_chunks
 
+
 def integrate_spatial_dims(filename_base: str, chunksize: int) -> npt.NDArray[np.floating]:
 
     maxindex, n_chunks = get_n_chunks(filename_base, chunksize)
@@ -55,21 +56,55 @@ def integrate_spatial_dims(filename_base: str, chunksize: int) -> npt.NDArray[np
     return channel_sums
 
 
-def run_test(filename_base: str, axis: int, reload_memmap: bool = False):
+def get_ds_info(filename_base: str, 
+                axis: int, 
+                chunksize: int, 
+                return_ds: bool = False):
     ds = load_edax_spd(filename_base)
-
-    # sz_0 = ds['axes'][0]['size']
-    # sz_1 = ds['axes'][1]['size']
-    # sz_2 = ds['axes'][2]['size']
-
-    chunksize = 64
-
     n_chunks = int(np.ceil(ds['axes'][axis]['size'] / chunksize))
     maxindex = ds['axes'][axis]['size']
+    if return_ds: 
+        ds_out = ds 
+    else:
+        ds_out = None 
+    return n_chunks, maxindex, ds_out
 
-    if reload_memmap:
-        del ds
 
+def process_chunk(filename_base: str, 
+                  axis: int, 
+                  channel_start: int, 
+                  channel_end: int,
+                  ds = None):
+    
+    if ds is None:
+        ds = load_edax_spd(filename_base)
+
+    match axis:
+        case 0:
+            subsample = np.array(ds['data'][channel_start:channel_end,:,:])
+        case 1:
+            subsample = np.array(ds['data'][:,channel_start:channel_end,:])
+        case 2:
+            # worst case!
+            subsample = np.array(ds['data'][:,:,channel_start:channel_end])
+
+    reduced_value = np.sum(subsample)
+    return reduced_value, subsample.shape
+
+
+def run_test(filename_base: str, 
+             axis: int, 
+             reload_memmap: bool = False,
+             chunksize: int = 32):
+
+
+    if reload_memmap is False: 
+        return_ds = True
+    else:
+        return_ds = False 
+    
+    n_chunks, maxindex, ds = get_ds_info(filename_base, axis, chunksize, return_ds=return_ds)
+        
     for ichunk in range(n_chunks):
 
         channel_start = ichunk * chunksize
@@ -77,24 +112,13 @@ def run_test(filename_base: str, axis: int, reload_memmap: bool = False):
         if channel_end > maxindex:
             channel_end = maxindex
 
-        if reload_memmap:
-            ds = load_edax_spd(filename_base)
-
-        match axis:
-            case 0:
-                subsample = np.array(ds['data'][channel_start:channel_end,:,:])
-            case 1:
-                subsample = np.array(ds['data'][:,channel_start:channel_end,:])
-            case 2:
-                # worst case!
-                subsample = np.array(ds['data'][:,:,channel_start:channel_end])
-
-        if reload_memmap:
-            del ds
-
-        _ = np.sum(subsample)
-        assert len(subsample.shape) == 3
-        del subsample
+        _, subshape = process_chunk(filename_base, 
+                                    axis, 
+                                    channel_start, 
+                                    channel_end, 
+                                    ds=ds)        
+        assert len(subshape) == 3
+        
 
 
 
@@ -104,6 +128,7 @@ class cmdArgs:
     filename: str
     axis: int
     reload_memmap: bool
+    chunksize: int
 
 
 if __name__ == "__main__":
@@ -112,9 +137,14 @@ if __name__ == "__main__":
     parser.add_argument('--filename', type=str, default='C-12')
     parser.add_argument('--axis', type=int, default=0)
     parser.add_argument('--reload', type=int, default=0)
+    parser.add_argument('--chunksize', type=int, default=32)
     args = parser.parse_args()
-    valid_args = cmdArgs(args.filename, args.axis, bool(args.reload))
-    run_test(valid_args.filename, valid_args.axis, reload_memmap=valid_args.reload_memmap)
+    valid_args = cmdArgs(args.filename, args.axis, bool(args.reload), args.chunksize)
+    run_test(valid_args.filename, 
+             valid_args.axis, 
+             reload_memmap=valid_args.reload_memmap,
+             chunksize=valid_args.chunksize)
+    
 
 
 
